@@ -1,0 +1,41 @@
+---
+- name: Rollback NTP Changes
+  block:
+    - name: Check if NTP conf backup file exists
+      stat:
+        path: "{{ ntp_conf_backup_file }}"
+      register: ntp_file_exists
+      
+    - name: Replace current NTP config with the backup config file
+      copy:
+        src: "{{ ntp_conf_backup_file }}"
+        dest: /etc/ntp.conf
+        remote_src: yes
+      notify: "restart ntpd services"
+
+- name: Rollback DNS Changes
+  block:
+    - name: Check if NetworkManager conf backup file exists
+      stat:
+        path: "{{ network_manager_conf_backup_file }}"
+      register: network_manager_file_exists
+    
+    - name: Replace current NetworkManager conf with the backup config file
+      copy:
+        src: "{{ network_manager_conf_backup_file }}"
+        dest: /etc/NetworkManager/NetworkManager.conf
+        remote_src: yes
+      notify: "reload NetworkManager"
+    
+    - name: Check if resolv conf backup file exists
+      stat:
+        path: "{{ resolv_conf_backup_file }}"
+      register: dns_file_exists
+  
+    - name: Replace current resolv conf with the backup config file
+      copy:
+        src: "{{ resolv_conf_backup_file }}"
+        dest: /etc/resolv.conf
+        remote_src: yes
+      notify: "reload NetworkManager"
+  
